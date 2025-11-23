@@ -9,8 +9,17 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
-  final TextEditingController _textController = TextEditingController();
+class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
+  final _textController = TextEditingController();
+  late final AnimationController _animationController = AnimationController(
+    duration: const Duration(seconds: 3),
+    vsync: this,
+  );
+  late final _animation = CurvedAnimation(
+    parent: _animationController,
+    curve: Curves.decelerate,
+  );
+  String _animatingMessage = '';
 
   @override
   void dispose() {
@@ -18,11 +27,19 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
-  void _sendMessage(BuildContext context) {
+  Future<void> _sendMessage() async {
+    final bloc = context.read<ChatBloc>();
     final text = _textController.text.trim();
+    _textController.clear();
+
+    setState(() {
+      _animatingMessage = text;
+    });
+    await _animationController.forward();
+    _animationController.reset();
+
     if (text.isNotEmpty) {
-      context.read<ChatBloc>().add(ChatSendPressed(text));
-      _textController.clear();
+      bloc.add(ChatSendPressed(text));
     }
   }
 
@@ -35,23 +52,48 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: BlocBuilder<ChatBloc, ChatState>(
               builder: (context, state) {
-                if (state.messages.isEmpty) {
-                  return const Center(
-                    child: Text('No messages yet. Start chatting!'),
-                  );
-                }
+                const bubbleSpacing = 8.0;
 
-                return ListView.builder(
+                return CustomScrollView(
                   reverse: true,
-                  padding: const EdgeInsets.all(8),
-                  itemCount: state.messages.length,
-                  itemBuilder: (context, index) {
-                    final message = state.messages[index];
-                    return ChatBubble(
-                      message: message.text,
-                      timestamp: message.timestamp,
-                    );
-                  },
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: const SizedBox(height: bubbleSpacing),
+                    ),
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      sliver: SliverToBoxAdapter(
+                        child: SizeTransition(
+                          sizeFactor: _animation,
+                          child: Padding(
+                            padding: EdgeInsets.only(bottom: bubbleSpacing),
+                            child: ChatBubble(
+                              message: _animatingMessage,
+                              timestamp: DateTime.now(),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: const SizedBox(height: bubbleSpacing),
+                    ),
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      sliver: SliverList.separated(
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: bubbleSpacing),
+                        itemCount: state.messages.length,
+                        itemBuilder: (context, index) {
+                          final message = state.messages[index];
+                          return ChatBubble(
+                            message: message.text,
+                            timestamp: message.timestamp,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 );
               },
             ),
@@ -86,13 +128,13 @@ class _ChatScreenState extends State<ChatScreen> {
                             vertical: 12,
                           ),
                         ),
-                        onSubmitted: (_) => _sendMessage(context),
+                        onSubmitted: (_) => _sendMessage(),
                       ),
                     ),
                     const SizedBox(width: 8),
                     IconButton(
                       icon: const Icon(Icons.send),
-                      onPressed: () => _sendMessage(context),
+                      onPressed: _sendMessage,
                     ),
                   ],
                 ),
@@ -116,7 +158,6 @@ class ChatBubble extends StatelessWidget {
     return Align(
       alignment: Alignment.centerRight,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.primaryContainer,
