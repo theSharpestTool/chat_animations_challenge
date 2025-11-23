@@ -61,12 +61,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       child: const SizedBox(height: bubbleSpacing),
                     ),
                     SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      padding: .symmetric(horizontal: 8.0),
                       sliver: SliverToBoxAdapter(
                         child: SizeTransition(
                           sizeFactor: _animation,
                           child: Padding(
-                            padding: EdgeInsets.only(bottom: bubbleSpacing),
+                            padding: .only(bottom: bubbleSpacing),
                             child: ChatBubble(
                               message: _animatingMessage,
                               timestamp: DateTime.now(),
@@ -79,7 +79,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       child: const SizedBox(height: bubbleSpacing),
                     ),
                     SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      padding: .symmetric(horizontal: 8.0),
                       sliver: SliverList.separated(
                         separatorBuilder: (context, index) =>
                             const SizedBox(height: bubbleSpacing),
@@ -111,7 +111,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             ),
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: .all(8.0),
                 child: Row(
                   children: [
                     Expanded(
@@ -121,9 +121,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         decoration: const InputDecoration(
                           hintText: 'Type a message...',
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(24)),
+                            borderRadius: .all(Radius.circular(24)),
                           ),
-                          contentPadding: EdgeInsets.symmetric(
+                          contentPadding: .symmetric(
                             horizontal: 16,
                             vertical: 12,
                           ),
@@ -156,12 +156,12 @@ class ChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Align(
-      alignment: Alignment.centerRight,
+      alignment: .centerRight,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: .symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.primaryContainer,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: .circular(18),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
