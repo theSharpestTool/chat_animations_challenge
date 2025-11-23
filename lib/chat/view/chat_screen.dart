@@ -19,7 +19,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     parent: _animationController,
     curve: Curves.decelerate,
   );
-  String _animatingMessage = '';
+  String _animatingMessageText = '';
 
   @override
   void dispose() {
@@ -33,7 +33,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     _textController.clear();
 
     setState(() {
-      _animatingMessage = text;
+      _animatingMessageText = text;
     });
     await _animationController.forward();
     _animationController.reset();
@@ -68,7 +68,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           child: Padding(
                             padding: .only(bottom: bubbleSpacing),
                             child: ChatBubble(
-                              message: _animatingMessage,
+                              message: _animatingMessageText,
                               timestamp: DateTime.now(),
                             ),
                           ),
