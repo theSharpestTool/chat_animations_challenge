@@ -16,9 +16,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     ChatSendPressed event,
     Emitter<ChatState> emit,
   ) async {
-    final newMessage = ChatMessage(text: event.messageText, timestamp: DateTime.now());
+    final newMessage = ChatMessage(
+      text: event.messageText,
+      timestamp: DateTime.now(),
+    );
 
-    final updatedMessages = [...state.messages, newMessage];
+    final updatedMessages = [newMessage, ...state.messages];
 
     emit(ChatState(messages: updatedMessages));
   }
