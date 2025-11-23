@@ -1,6 +1,8 @@
 part of 'chat_bloc.dart';
 
 @immutable
-abstract class ChatState {}
+final class ChatState {
+  const ChatState({required this.messages});
 
-class ChatInitial extends ChatState {}
+  final List<ChatMessage> messages;
+}
