@@ -10,6 +10,10 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
+  final _inputFieldKey = GlobalKey();
+  final _sizeTransitionKey = GlobalKey();
+  final _animatingBubbleKey = GlobalKey();
+
   final _textController = TextEditingController();
   late final AnimationController _animationController = AnimationController(
     duration: const Duration(seconds: 3),
@@ -35,12 +39,46 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     setState(() {
       _animatingMessageText = text;
     });
-    await _animationController.forward();
-    _animationController.reset();
 
-    if (text.isNotEmpty) {
-      bloc.add(ChatSendPressed(text));
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final startSize = _inputFieldKey.size!;
+      final startOffset = _inputFieldKey.offset!;
+      final startRect = startOffset & startSize;
+
+      final sizeTransitionOffset = _sizeTransitionKey.offset!;
+      final animatingBubbleOffset = _animatingBubbleKey.offset!;
+
+      final endSize = _animatingBubbleKey.size!;
+      final endOffset = Offset(
+        animatingBubbleOffset.dx,
+        sizeTransitionOffset.dy - endSize.height,
+      );
+      final endRect = endOffset & endSize;
+
+      final overlayEntry = OverlayEntry(
+        builder: (context) {
+          return AnimatedBuilder(
+            animation: _animation,
+            child: Container(color: Colors.red.withValues(alpha: 0.5)),
+            builder: (context, child) {
+              final rectTween = RectTween(begin: startRect, end: endRect);
+              final rect = rectTween.evaluate(_animation);
+
+              return Positioned.fromRect(rect: rect!, child: child!);
+            },
+          );
+        },
+      );
+      Overlay.of(context).insert(overlayEntry);
+
+      await _animationController.forward();
+      _animationController.reset();
+      overlayEntry.remove();
+
+      if (text.isNotEmpty) {
+        bloc.add(ChatSendPressed(text));
+      }
+    });
   }
 
   @override
@@ -64,12 +102,17 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       padding: .symmetric(horizontal: 8.0),
                       sliver: SliverToBoxAdapter(
                         child: SizeTransition(
+                          key: _sizeTransitionKey,
                           sizeFactor: _animation,
-                          child: Padding(
-                            padding: .only(bottom: bubbleSpacing),
-                            child: ChatBubble(
-                              message: _animatingMessageText,
-                              timestamp: DateTime.now(),
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: Padding(
+                              key: _animatingBubbleKey,
+                              padding: .only(bottom: bubbleSpacing),
+                              child: ChatBubble(
+                                message: _animatingMessageText,
+                                timestamp: DateTime.now(),
+                              ),
                             ),
                           ),
                         ),
@@ -86,9 +129,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         itemCount: state.messages.length,
                         itemBuilder: (context, index) {
                           final message = state.messages[index];
-                          return ChatBubble(
-                            message: message.text,
-                            timestamp: message.timestamp,
+                          return Align(
+                            alignment: Alignment.centerRight,
+                            child: ChatBubble(
+                              message: message.text,
+                              timestamp: message.timestamp,
+                            ),
                           );
                         },
                       ),
@@ -116,6 +162,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   children: [
                     Expanded(
                       child: TextField(
+                        key: _inputFieldKey,
                         controller: _textController,
                         maxLines: null,
                         decoration: const InputDecoration(
@@ -155,30 +202,27 @@ class ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: .centerRight,
-      child: Container(
-        padding: .symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primaryContainer,
-          borderRadius: .circular(18),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(message, style: Theme.of(context).textTheme.bodyLarge),
-            const SizedBox(height: 4),
-            Text(
-              _formatTimestamp(timestamp),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onPrimaryContainer.withValues(alpha: 0.6),
-              ),
+    return Container(
+      padding: .symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primaryContainer,
+        borderRadius: .circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(message, style: Theme.of(context).textTheme.bodyLarge),
+          const SizedBox(height: 4),
+          Text(
+            _formatTimestamp(timestamp),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(
+                context,
+              ).colorScheme.onPrimaryContainer.withValues(alpha: 0.6),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -186,5 +230,23 @@ class ChatBubble extends StatelessWidget {
   String _formatTimestamp(DateTime timestamp) {
     return '${timestamp.hour.toString().padLeft(2, '0')}:'
         '${timestamp.minute.toString().padLeft(2, '0')}';
+  }
+}
+
+extension on GlobalKey {
+  Size? get size {
+    final renderObject = currentContext?.findRenderObject();
+    if (renderObject is RenderBox) {
+      return renderObject.size;
+    }
+    return null;
+  }
+
+  Offset? get offset {
+    final renderObject = currentContext?.findRenderObject();
+    if (renderObject is RenderBox) {
+      return renderObject.localToGlobal(Offset.zero);
+    }
+    return null;
   }
 }
