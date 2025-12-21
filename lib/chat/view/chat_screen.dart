@@ -11,7 +11,6 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final _inputFieldKey = GlobalKey();
-  final _sizeTransitionKey = GlobalKey();
   final _animatingBubbleKey = GlobalKey();
 
   final _textController = TextEditingController();
@@ -41,25 +40,20 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final startSize = _inputFieldKey.size!;
-      final startOffset = _inputFieldKey.offset!;
-      final startRect = startOffset & startSize;
-
-      final sizeTransitionOffset = _sizeTransitionKey.offset!;
-      final animatingBubbleOffset = _animatingBubbleKey.offset!;
-
-      final endSize = _animatingBubbleKey.size!;
-      final endOffset = Offset(
-        animatingBubbleOffset.dx,
-        sizeTransitionOffset.dy - endSize.height,
-      );
-      final endRect = endOffset & endSize;
+      final startRect = _inputFieldKey.rect;
+      final endRect = _animatingBubbleKey.rect;
 
       final overlayEntry = OverlayEntry(
         builder: (context) {
           return AnimatedBuilder(
             animation: _animation,
-            child: Container(color: Colors.red.withValues(alpha: 0.5)),
+            child: SingleChildScrollView(
+              physics: const NeverScrollableScrollPhysics(),
+              child: ChatBubble(
+                message: _animatingMessageText,
+                timestamp: DateTime.now(),
+              ),
+            ),
             builder: (context, child) {
               final rectTween = RectTween(begin: startRect, end: endRect);
               final rect = rectTween.evaluate(_animation);
@@ -101,20 +95,23 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     SliverPadding(
                       padding: .symmetric(horizontal: 8.0),
                       sliver: SliverToBoxAdapter(
-                        child: SizeTransition(
-                          key: _sizeTransitionKey,
-                          sizeFactor: _animation,
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: Padding(
-                              key: _animatingBubbleKey,
-                              padding: .only(bottom: bubbleSpacing),
-                              child: ChatBubble(
-                                message: _animatingMessageText,
-                                timestamp: DateTime.now(),
-                              ),
+                        child: AnimatedBuilder(
+                          animation: _animation,
+                          child: Padding(
+                            key: _animatingBubbleKey,
+                            padding: .only(bottom: bubbleSpacing),
+                            child: ChatBubble(
+                              message: _animatingMessageText,
+                              timestamp: DateTime.now(),
                             ),
                           ),
+                          builder: (context, child) {
+                            return Align(
+                              heightFactor: _animation.value,
+                              alignment: Alignment.bottomRight,
+                              child: child,
+                            );
+                          },
                         ),
                       ),
                     ),
@@ -246,6 +243,15 @@ extension on GlobalKey {
     final renderObject = currentContext?.findRenderObject();
     if (renderObject is RenderBox) {
       return renderObject.localToGlobal(Offset.zero);
+    }
+    return null;
+  }
+
+  Rect? get rect {
+    final offset = this.offset;
+    final size = this.size;
+    if (offset != null && size != null) {
+      return offset & size;
     }
     return null;
   }
