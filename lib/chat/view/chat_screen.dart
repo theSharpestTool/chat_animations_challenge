@@ -47,18 +47,21 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         builder: (context) {
           return AnimatedBuilder(
             animation: _animation,
-            child: SingleChildScrollView(
-              physics: const NeverScrollableScrollPhysics(),
-              child: ChatBubble(
-                message: _animatingMessageText,
-                timestamp: DateTime.now(),
-              ),
-            ),
             builder: (context, child) {
               final rectTween = RectTween(begin: startRect, end: endRect);
               final rect = rectTween.evaluate(_animation);
 
-              return Positioned.fromRect(rect: rect!, child: child!);
+              return Positioned.fromRect(
+                rect: rect!,
+                child: SingleChildScrollView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  child: ChatBubbleTransition(
+                    animation: _animation,
+                    message: _animatingMessageText,
+                    timestamp: DateTime.now(),
+                  ),
+                ),
+              );
             },
           );
         },
@@ -194,19 +197,95 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 }
 
-class ChatBubble extends StatelessWidget {
-  const ChatBubble({required this.message, required this.timestamp, super.key});
+class ChatBubbleTransition extends StatelessWidget {
+  const ChatBubbleTransition({
+    required this.animation,
+    required this.message,
+    required this.timestamp,
+    super.key,
+  });
 
+  final Animation<double> animation;
   final String message;
   final DateTime timestamp;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    final color = ColorTween(
+      begin: colorScheme.surface,
+      end: colorScheme.primary,
+    ).evaluate(animation);
+    final padding = EdgeInsetsGeometryTween(
+      begin: .symmetric(horizontal: 16, vertical: 14),
+      end: .symmetric(horizontal: 16, vertical: 10),
+    ).evaluate(animation);
+    final borderRadius = BorderRadiusTween(
+      begin: .circular(24),
+      end: .circular(18),
+    ).evaluate(animation);
+    final messageTextStyle = TextStyleTween(
+      begin: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+      end: textTheme.bodyMedium?.copyWith(color: colorScheme.onPrimary),
+    ).evaluate(animation);
+    final timestampTextStyle = TextStyleTween(
+      begin: textTheme.bodySmall?.copyWith(
+        color: colorScheme.onSurface,
+        fontSize: 0,
+      ),
+      end: textTheme.bodySmall?.copyWith(color: colorScheme.onPrimary),
+    ).evaluate(animation);
+    final verticalSpacing = Tween<double>(begin: 0, end: 4).evaluate(animation);
+
+    return ChatBubble(
+      message: message,
+      timestamp: timestamp,
+      color: color,
+      padding: padding,
+      borderRadius: borderRadius,
+      messageTextStyle: messageTextStyle,
+      timestampTextStyle: timestampTextStyle,
+      verticalSpacing: verticalSpacing,
+    );
+  }
+}
+
+class ChatBubble extends StatelessWidget {
+  const ChatBubble({
+    required this.message,
+    required this.timestamp,
+    this.color,
+    this.padding,
+    this.borderRadius,
+    this.messageTextStyle,
+    this.timestampTextStyle,
+    this.verticalSpacing,
+    super.key,
+  });
+
+  final String message;
+  final DateTime timestamp;
+  final Color? color;
+  final EdgeInsetsGeometry? padding;
+  final BorderRadiusGeometry? borderRadius;
+  final TextStyle? messageTextStyle;
+  final TextStyle? timestampTextStyle;
+  final double? verticalSpacing;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
     return Container(
-      padding: .symmetric(horizontal: 16, vertical: 10),
+      padding: padding ?? .symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
-        borderRadius: .circular(18),
+        color: color ?? colorScheme.primary,
+        borderRadius: borderRadius ?? .circular(18),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -214,16 +293,16 @@ class ChatBubble extends StatelessWidget {
         children: [
           Text(
             message,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onPrimary,
-            ),
+            style:
+                messageTextStyle ??
+                textTheme.bodyMedium?.copyWith(color: colorScheme.onPrimary),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: verticalSpacing ?? 4),
           Text(
             _formatTimestamp(timestamp),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onPrimary,
-            ),
+            style:
+                timestampTextStyle ??
+                textTheme.bodySmall?.copyWith(color: colorScheme.onPrimary),
           ),
         ],
       ),
