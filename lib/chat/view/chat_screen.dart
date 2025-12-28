@@ -97,12 +97,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       sliver: SliverToBoxAdapter(
                         child: AnimatedBuilder(
                           animation: _animation,
-                          child: Padding(
-                            key: _animatingBubbleKey,
-                            padding: .only(bottom: bubbleSpacing),
-                            child: ChatBubble(
-                              message: _animatingMessageText,
-                              timestamp: DateTime.now(),
+                          child: Visibility.maintain(
+                            visible: false,
+                            child: Padding(
+                              key: _animatingBubbleKey,
+                              padding: .only(bottom: bubbleSpacing),
+                              child: ChatBubble(
+                                message: _animatingMessageText,
+                                timestamp: DateTime.now(),
+                              ),
                             ),
                           ),
                           builder: (context, child) {
@@ -231,28 +234,14 @@ class ChatBubble extends StatelessWidget {
 }
 
 extension on GlobalKey {
-  Size? get size {
-    final renderObject = currentContext?.findRenderObject();
-    if (renderObject is RenderBox) {
-      return renderObject.size;
-    }
-    return null;
-  }
-
-  Offset? get offset {
-    final renderObject = currentContext?.findRenderObject();
-    if (renderObject is RenderBox) {
-      return renderObject.localToGlobal(Offset.zero);
-    }
-    return null;
-  }
-
   Rect? get rect {
-    final offset = this.offset;
-    final size = this.size;
-    if (offset != null && size != null) {
-      return offset & size;
+    final renderObject = currentContext?.findRenderObject();
+    if (renderObject is! RenderBox) {
+      return null;
     }
-    return null;
+
+    final offset = renderObject.localToGlobal(Offset.zero);
+    final size = renderObject.size;
+    return offset & size;
   }
 }
