@@ -205,21 +205,24 @@ class ChatBubble extends StatelessWidget {
     return Container(
       padding: .symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer,
+        color: Theme.of(context).colorScheme.primary,
         borderRadius: .circular(18),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(message, style: Theme.of(context).textTheme.bodyLarge),
+          Text(
+            message,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: Theme.of(context).colorScheme.onPrimary,
+            ),
+          ),
           const SizedBox(height: 4),
           Text(
             _formatTimestamp(timestamp),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(
-                context,
-              ).colorScheme.onPrimaryContainer.withValues(alpha: 0.6),
+              color: Theme.of(context).colorScheme.onPrimary,
             ),
           ),
         ],
