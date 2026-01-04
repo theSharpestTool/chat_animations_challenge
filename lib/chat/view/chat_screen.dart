@@ -1,4 +1,5 @@
 import 'package:advanced_chat_animations/chat/bloc/chat_bloc.dart';
+import 'package:boxy/flex.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -287,9 +288,8 @@ class ChatBubble extends StatelessWidget {
         color: color ?? colorScheme.primary,
         borderRadius: borderRadius ?? .circular(18),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min,
+      child: BoxyColumn(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             message,
@@ -298,11 +298,14 @@ class ChatBubble extends StatelessWidget {
                 textTheme.bodyMedium?.copyWith(color: colorScheme.onPrimary),
           ),
           SizedBox(height: verticalSpacing ?? 4),
-          Text(
-            _formatTimestamp(timestamp),
-            style:
-                timestampTextStyle ??
-                textTheme.bodySmall?.copyWith(color: colorScheme.onPrimary),
+          BoxyFlexible.align(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            child: Text(
+              _formatTimestamp(timestamp),
+              style:
+                  timestampTextStyle ??
+                  textTheme.bodySmall?.copyWith(color: colorScheme.onPrimary),
+            ),
           ),
         ],
       ),
