@@ -17,7 +17,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   final _textController = TextEditingController();
   late final AnimationController _animationController = AnimationController(
-    duration: const Duration(seconds: 3),
+    duration: const Duration(milliseconds: 300),
     vsync: this,
   );
   late final _animation = CurvedAnimation(
