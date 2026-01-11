@@ -1,7 +1,6 @@
-import 'package:advanced_chat_animations/chat/bloc/chat_bloc.dart';
+import 'package:advanced_chat_animations/chat/chat.dart';
 import 'package:boxy/flex.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -11,6 +10,8 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
+  var _messages = <ChatMessage>[];
+
   final _inputFieldKey = GlobalKey();
   final _animatingBubbleKey = GlobalKey();
 
@@ -32,7 +33,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _sendMessage() async {
-    final bloc = context.read<ChatBloc>();
     final text = _textController.text.trim();
     _textController.clear();
 
@@ -74,78 +74,78 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       overlayEntry.remove();
 
       if (text.isNotEmpty) {
-        bloc.add(ChatSendPressed(text));
+        final newMessage = ChatMessage(text: text, timestamp: DateTime.now());
+
+        setState(() {
+          _messages = [newMessage, ..._messages];
+        });
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    const bubbleSpacing = 8.0;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Chat Screen')),
       body: Column(
         children: [
           Expanded(
-            child: BlocBuilder<ChatBloc, ChatState>(
-              builder: (context, state) {
-                const bubbleSpacing = 8.0;
-
-                return CustomScrollView(
-                  reverse: true,
-                  slivers: [
-                    SliverToBoxAdapter(
-                      child: const SizedBox(height: bubbleSpacing),
-                    ),
-                    SliverPadding(
-                      padding: .symmetric(horizontal: 8.0),
-                      sliver: SliverToBoxAdapter(
-                        child: AnimatedBuilder(
-                          animation: _animation,
-                          child: Visibility.maintain(
-                            visible: false,
-                            child: Padding(
-                              key: _animatingBubbleKey,
-                              padding: .only(bottom: bubbleSpacing),
-                              child: ChatBubble(
-                                message: _animatingMessageText,
-                                timestamp: DateTime.now(),
-                              ),
-                            ),
+            child: CustomScrollView(
+              reverse: true,
+              slivers: [
+                SliverToBoxAdapter(
+                  child: const SizedBox(height: bubbleSpacing),
+                ),
+                SliverPadding(
+                  padding: .symmetric(horizontal: 8.0),
+                  sliver: SliverToBoxAdapter(
+                    child: AnimatedBuilder(
+                      animation: _animation,
+                      child: Visibility.maintain(
+                        visible: false,
+                        child: Padding(
+                          key: _animatingBubbleKey,
+                          padding: .only(bottom: bubbleSpacing),
+                          child: ChatBubble(
+                            message: _animatingMessageText,
+                            timestamp: DateTime.now(),
                           ),
-                          builder: (context, child) {
-                            return Align(
-                              heightFactor: _animation.value,
-                              alignment: Alignment.bottomRight,
-                              child: child,
-                            );
-                          },
                         ),
                       ),
+                      builder: (context, child) {
+                        return Align(
+                          heightFactor: _animation.value,
+                          alignment: Alignment.bottomRight,
+                          child: child,
+                        );
+                      },
                     ),
-                    SliverToBoxAdapter(
-                      child: const SizedBox(height: bubbleSpacing),
-                    ),
-                    SliverPadding(
-                      padding: .symmetric(horizontal: 8.0),
-                      sliver: SliverList.separated(
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(height: bubbleSpacing),
-                        itemCount: state.messages.length,
-                        itemBuilder: (context, index) {
-                          final message = state.messages[index];
-                          return Align(
-                            alignment: Alignment.centerRight,
-                            child: ChatBubble(
-                              message: message.text,
-                              timestamp: message.timestamp,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                );
-              },
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: const SizedBox(height: bubbleSpacing),
+                ),
+                SliverPadding(
+                  padding: .symmetric(horizontal: 8.0),
+                  sliver: SliverList.separated(
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: bubbleSpacing),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      final message = _messages[index];
+                      return Align(
+                        alignment: Alignment.centerRight,
+                        child: ChatBubble(
+                          message: message.text,
+                          timestamp: message.timestamp,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
           Container(
@@ -179,7 +179,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                             vertical: 12,
                           ),
                         ),
-                        onSubmitted: (_) => _sendMessage(),
                       ),
                     ),
                     const SizedBox(width: 8),
