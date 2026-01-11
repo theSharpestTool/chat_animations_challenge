@@ -95,9 +95,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             child: CustomScrollView(
               reverse: true,
               slivers: [
-                SliverToBoxAdapter(
-                  child: const SizedBox(height: bubbleSpacing),
-                ),
+                SliverToBoxAdapter(child: const SizedBox(height: 16)),
                 SliverPadding(
                   padding: .symmetric(horizontal: 8.0),
                   sliver: SliverToBoxAdapter(
@@ -106,9 +104,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       child: Visibility.maintain(
                         visible: false,
                         child: Padding(
-                          key: _animatingBubbleKey,
-                          padding: .only(bottom: bubbleSpacing),
+                          padding: .only(top: bubbleSpacing),
                           child: ChatBubble(
+                            key: _animatingBubbleKey,
                             message: _animatingMessageText,
                             timestamp: DateTime.now(),
                           ),
@@ -123,9 +121,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       },
                     ),
                   ),
-                ),
-                SliverToBoxAdapter(
-                  child: const SizedBox(height: bubbleSpacing),
                 ),
                 SliverPadding(
                   padding: .symmetric(horizontal: 8.0),
