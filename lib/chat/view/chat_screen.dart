@@ -10,7 +10,8 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
-  var _messages = <ChatMessage>[];
+  var _sendingMessages = <ChatMessage>[];
+  var _deliveredMessages = <ChatMessage>[];
 
   final _inputFieldKey = GlobalKey();
   final _animatingBubbleKey = GlobalKey();
@@ -77,7 +78,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         final newMessage = ChatMessage(text: text, timestamp: DateTime.now());
 
         setState(() {
-          _messages = [newMessage, ..._messages];
+          _sendingMessages = [newMessage, ..._sendingMessages];
+        });
+
+        await Future.delayed(const Duration(seconds: 1));
+
+        setState(() {
+          _sendingMessages.remove(newMessage);
+          _deliveredMessages = [newMessage, ..._deliveredMessages];
         });
       }
     });
@@ -122,14 +130,43 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
+                if (_sendingMessages.isNotEmpty)
+                  SliverPadding(
+                    padding: .only(left: 8.0, right: 8.0, top: bubbleSpacing),
+                    sliver: SliverList.separated(
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: bubbleSpacing),
+                      itemCount: _sendingMessages.length,
+                      itemBuilder: (context, index) {
+                        final message = _sendingMessages[index];
+                        return Align(
+                          alignment: Alignment.centerRight,
+                          child: ChatBubble(
+                            message: message.text,
+                            timestamp: message.timestamp,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                if (_deliveredMessages.isNotEmpty)
+                  SliverPadding(
+                    padding: .only(right: 16.0, top: bubbleSpacing),
+                    sliver: SliverToBoxAdapter(
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: Text('Delivered'),
+                      ),
+                    ),
+                  ),
                 SliverPadding(
                   padding: .symmetric(horizontal: 8.0),
                   sliver: SliverList.separated(
                     separatorBuilder: (context, index) =>
                         const SizedBox(height: bubbleSpacing),
-                    itemCount: _messages.length,
+                    itemCount: _deliveredMessages.length,
                     itemBuilder: (context, index) {
-                      final message = _messages[index];
+                      final message = _deliveredMessages[index];
                       return Align(
                         alignment: Alignment.centerRight,
                         child: ChatBubble(
