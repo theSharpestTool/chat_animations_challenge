@@ -1,4 +1,4 @@
-import 'package:advanced_chat_animations/chat/chat.dart';
+import 'package:advanced_chat_animations/chat/view/chat_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() => runApp(const MyApp());

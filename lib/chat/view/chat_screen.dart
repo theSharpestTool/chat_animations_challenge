@@ -1,5 +1,7 @@
-import 'package:advanced_chat_animations/chat/chat.dart';
-import 'package:boxy/flex.dart';
+import 'package:advanced_chat_animations/chat/models/chat_message.dart';
+import 'package:advanced_chat_animations/chat/view/widgets/animations/bubble_placeholder.dart';
+import 'package:advanced_chat_animations/chat/view/widgets/animations/bubble_transition.dart';
+import 'package:advanced_chat_animations/chat/view/widgets/bubble.dart';
 import 'package:flutter/material.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -14,18 +16,19 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   var _deliveredMessages = <ChatMessage>[];
 
   final _inputFieldKey = GlobalKey();
-  final _animatingBubbleKey = GlobalKey();
+  final _bubblePlaceholderKey = GlobalKey();
 
   final _textController = TextEditingController();
-  late final AnimationController _animationController = AnimationController(
+
+  late final _bubbleTransitionController = AnimationController(
     duration: const Duration(milliseconds: 300),
     vsync: this,
   );
-  late final _animation = CurvedAnimation(
-    parent: _animationController,
+  late final _bubbleTransitionAnimation = CurvedAnimation(
+    parent: _bubbleTransitionController,
     curve: Curves.decelerate,
   );
-  String _animatingMessageText = '';
+  String _bubbleTransitionText = '';
 
   @override
   void dispose() {
@@ -38,40 +41,27 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     _textController.clear();
 
     setState(() {
-      _animatingMessageText = text;
+      _bubbleTransitionText = text;
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final startRect = _inputFieldKey.rect;
-      final endRect = _animatingBubbleKey.rect;
+      final endRect = _bubblePlaceholderKey.rect;
 
       final overlayEntry = OverlayEntry(
         builder: (context) {
-          return AnimatedBuilder(
-            animation: _animation,
-            builder: (context, child) {
-              final rectTween = RectTween(begin: startRect, end: endRect);
-              final rect = rectTween.evaluate(_animation);
-
-              return Positioned.fromRect(
-                rect: rect!,
-                child: SingleChildScrollView(
-                  physics: const NeverScrollableScrollPhysics(),
-                  child: ChatBubbleTransition(
-                    animation: _animation,
-                    message: _animatingMessageText,
-                    timestamp: DateTime.now(),
-                  ),
-                ),
-              );
-            },
+          return BubbleTransition(
+            animation: _bubbleTransitionAnimation,
+            startRect: startRect,
+            endRect: endRect,
+            text: _bubbleTransitionText,
           );
         },
       );
       Overlay.of(context).insert(overlayEntry);
 
-      await _animationController.forward();
-      _animationController.reset();
+      await _bubbleTransitionController.forward();
+      _bubbleTransitionController.reset();
       overlayEntry.remove();
 
       if (text.isNotEmpty) {
@@ -107,26 +97,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 SliverPadding(
                   padding: .symmetric(horizontal: 8.0),
                   sliver: SliverToBoxAdapter(
-                    child: AnimatedBuilder(
-                      animation: _animation,
-                      child: Visibility.maintain(
-                        visible: false,
-                        child: Padding(
-                          padding: .only(top: bubbleSpacing),
-                          child: ChatBubble(
-                            key: _animatingBubbleKey,
-                            message: _animatingMessageText,
-                            timestamp: DateTime.now(),
-                          ),
-                        ),
-                      ),
-                      builder: (context, child) {
-                        return Align(
-                          heightFactor: _animation.value,
-                          alignment: Alignment.bottomRight,
-                          child: child,
-                        );
-                      },
+                    child: BubblePlaceholder(
+                      animation: _bubbleTransitionAnimation,
+                      bubblePlaceholderKey: _bubblePlaceholderKey,
+                      text: _bubbleTransitionText,
                     ),
                   ),
                 ),
@@ -141,8 +115,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         final message = _sendingMessages[index];
                         return Align(
                           alignment: Alignment.centerRight,
-                          child: ChatBubble(
-                            message: message.text,
+                          child: Bubble(
+                            text: message.text,
                             timestamp: message.timestamp,
                           ),
                         );
@@ -169,8 +143,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       final message = _deliveredMessages[index];
                       return Align(
                         alignment: Alignment.centerRight,
-                        child: ChatBubble(
-                          message: message.text,
+                        child: Bubble(
+                          text: message.text,
                           timestamp: message.timestamp,
                         ),
                       );
@@ -226,126 +200,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         ],
       ),
     );
-  }
-}
-
-class ChatBubbleTransition extends StatelessWidget {
-  const ChatBubbleTransition({
-    required this.animation,
-    required this.message,
-    required this.timestamp,
-    super.key,
-  });
-
-  final Animation<double> animation;
-  final String message;
-  final DateTime timestamp;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-
-    final color = ColorTween(
-      begin: colorScheme.surface,
-      end: colorScheme.primary,
-    ).evaluate(animation);
-    final padding = EdgeInsetsGeometryTween(
-      begin: .symmetric(horizontal: 16, vertical: 14),
-      end: .symmetric(horizontal: 16, vertical: 10),
-    ).evaluate(animation);
-    final borderRadius = BorderRadiusTween(
-      begin: .circular(24),
-      end: .circular(18),
-    ).evaluate(animation);
-    final messageTextStyle = TextStyleTween(
-      begin: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
-      end: textTheme.bodyMedium?.copyWith(color: colorScheme.onPrimary),
-    ).evaluate(animation);
-    final timestampTextStyle = TextStyleTween(
-      begin: textTheme.bodySmall?.copyWith(
-        color: colorScheme.onSurface,
-        fontSize: 0,
-      ),
-      end: textTheme.bodySmall?.copyWith(color: colorScheme.onPrimary),
-    ).evaluate(animation);
-    final verticalSpacing = Tween<double>(begin: 0, end: 4).evaluate(animation);
-
-    return ChatBubble(
-      message: message,
-      timestamp: timestamp,
-      color: color,
-      padding: padding,
-      borderRadius: borderRadius,
-      messageTextStyle: messageTextStyle,
-      timestampTextStyle: timestampTextStyle,
-      verticalSpacing: verticalSpacing,
-    );
-  }
-}
-
-class ChatBubble extends StatelessWidget {
-  const ChatBubble({
-    required this.message,
-    required this.timestamp,
-    this.color,
-    this.padding,
-    this.borderRadius,
-    this.messageTextStyle,
-    this.timestampTextStyle,
-    this.verticalSpacing,
-    super.key,
-  });
-
-  final String message;
-  final DateTime timestamp;
-  final Color? color;
-  final EdgeInsetsGeometry? padding;
-  final BorderRadiusGeometry? borderRadius;
-  final TextStyle? messageTextStyle;
-  final TextStyle? timestampTextStyle;
-  final double? verticalSpacing;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-
-    return Container(
-      padding: padding ?? .symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: color ?? colorScheme.primary,
-        borderRadius: borderRadius ?? .circular(18),
-      ),
-      child: BoxyColumn(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            message,
-            style:
-                messageTextStyle ??
-                textTheme.bodyMedium?.copyWith(color: colorScheme.onPrimary),
-          ),
-          SizedBox(height: verticalSpacing ?? 4),
-          BoxyFlexible.align(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            child: Text(
-              _formatTimestamp(timestamp),
-              style:
-                  timestampTextStyle ??
-                  textTheme.bodySmall?.copyWith(color: colorScheme.onPrimary),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatTimestamp(DateTime timestamp) {
-    return '${timestamp.hour.toString().padLeft(2, '0')}:'
-        '${timestamp.minute.toString().padLeft(2, '0')}';
   }
 }
 
