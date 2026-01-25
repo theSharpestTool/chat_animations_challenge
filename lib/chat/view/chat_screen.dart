@@ -38,6 +38,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     parent: _bubbleSlideController,
     curve: Curves.decelerate,
   );
+  late final _labelFadeAnimation = CurvedAnimation(
+    parent: _bubbleSlideController,
+    curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
+  );
+  late final _labelScaleAnimation = CurvedAnimation(
+    parent: _bubbleSlideController,
+    curve: const Interval(0.4, 1.0, curve: Curves.easeOutSine),
+  );
 
   @override
   void dispose() {
@@ -118,18 +126,21 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 ),
                 SliverToBoxAdapter(
                   child: AnimatedBuilder(
-                    animation: _bubbleSlideAnimation,
+                    animation: Listenable.merge(
+                      [_bubbleSlideAnimation, _labelScaleAnimation],
+                    ),
+                    child: Padding(
+                      padding: .only(right: 16.0, top: bubbleSpacing),
+                      child: const Text('Delivered'),
+                    ),
                     builder: (context, child) {
                       return Align(
                         heightFactor: _bubbleSlideAnimation.value,
                         alignment: Alignment.topRight,
                         child: Transform.scale(
+                          scale: _labelScaleAnimation.value,
                           alignment: Alignment.topCenter,
-                          scale: _bubbleSlideAnimation.value,
-                          child: Padding(
-                            padding: .only(right: 16.0, top: bubbleSpacing),
-                            child: Text('Delivered'),
-                          ),
+                          child: child,
                         ),
                       );
                     },
@@ -156,22 +167,28 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   ),
                 if (_deliveredMessages.isNotEmpty)
                   SliverToBoxAdapter(
-                    child: AnimatedBuilder(
-                      animation: _bubbleSlideAnimation,
-                      builder: (context, child) {
-                        return Align(
-                          heightFactor: 1 - _bubbleSlideAnimation.value,
-                          alignment: Alignment.topRight,
-                          child: Opacity(
-                            opacity: 1 - _bubbleSlideAnimation.value,
-                            child: Padding(
-                              padding: .only(right: 16.0, top: bubbleSpacing),
-                              child: Text('Delivered'),
-                            ),
-                          ),
-                        );
-                      },
+                  child: AnimatedBuilder(
+                    animation: Listenable.merge(
+                      [_bubbleSlideAnimation, _labelFadeAnimation],
                     ),
+                    child: Padding(
+                      padding: .only(
+                        right: 16.0,
+                        top: bubbleSpacing,
+                      ),
+                      child: const Text('Delivered'),
+                    ),
+                    builder: (context, child) {
+                      return Align(
+                        heightFactor: 1 - _bubbleSlideAnimation.value,
+                        alignment: Alignment.topRight,
+                        child: Opacity(
+                          opacity: 1 - _labelFadeAnimation.value,
+                          child: child,
+                        ),
+                      );
+                    },
+                  ),
                   ),
                 SliverPadding(
                   padding: .symmetric(horizontal: 8.0),
