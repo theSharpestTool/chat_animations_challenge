@@ -30,6 +30,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   );
   String _bubbleTransitionText = '';
 
+  late final _bubbleSlideController = AnimationController(
+    duration: const Duration(milliseconds: 500),
+    vsync: this,
+  );
+  late final _bubbleSlideAnimation = CurvedAnimation(
+    parent: _bubbleSlideController,
+    curve: Curves.decelerate,    
+  );
+
   @override
   void dispose() {
     _textController.dispose();
@@ -71,7 +80,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           _sendingMessages = [newMessage, ..._sendingMessages];
         });
 
-        await Future.delayed(const Duration(seconds: 1));
+        await Future.delayed(const Duration(seconds: 2));
+
+        await _bubbleSlideController.forward();
+        _bubbleSlideController.reset();
 
         setState(() {
           _sendingMessages.remove(newMessage);
@@ -104,6 +116,24 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
+                SliverToBoxAdapter(
+                  child: AnimatedBuilder(
+                    animation: _bubbleSlideAnimation,
+                    builder: (context, child) {
+                      return Align(
+                        heightFactor: _bubbleSlideAnimation.value,
+                        alignment: Alignment.bottomRight,
+                        child: Transform.scale(
+                          scale: _bubbleSlideAnimation.value,
+                          child: Padding(
+                            padding: .only(right: 16.0, top: bubbleSpacing),
+                            child: Text('Delivered'),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
                 if (_sendingMessages.isNotEmpty)
                   SliverPadding(
                     padding: .only(left: 8.0, right: 8.0, top: bubbleSpacing),
@@ -124,13 +154,22 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     ),
                   ),
                 if (_deliveredMessages.isNotEmpty)
-                  SliverPadding(
-                    padding: .only(right: 16.0, top: bubbleSpacing),
-                    sliver: SliverToBoxAdapter(
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Text('Delivered'),
-                      ),
+                  SliverToBoxAdapter(
+                    child: AnimatedBuilder(
+                      animation: _bubbleSlideAnimation,
+                      builder: (context, child) {
+                        return Align(
+                          heightFactor: 1 - _bubbleSlideAnimation.value,
+                          alignment: Alignment.topRight,
+                          child: Opacity(
+                            opacity: 1 - _bubbleSlideAnimation.value,
+                            child: Padding(
+                              padding: .only(right: 16.0, top: bubbleSpacing),
+                              child: Text('Delivered'),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 SliverPadding(
