@@ -36,7 +36,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   );
   late final _bubbleSlideAnimation = CurvedAnimation(
     parent: _bubbleSlideController,
-    curve: Curves.decelerate,    
+    curve: Curves.decelerate,
   );
 
   @override
@@ -122,8 +122,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     builder: (context, child) {
                       return Align(
                         heightFactor: _bubbleSlideAnimation.value,
-                        alignment: Alignment.bottomRight,
+                        alignment: Alignment.topRight,
                         child: Transform.scale(
+                          alignment: Alignment.topCenter,
                           scale: _bubbleSlideAnimation.value,
                           child: Padding(
                             padding: .only(right: 16.0, top: bubbleSpacing),
