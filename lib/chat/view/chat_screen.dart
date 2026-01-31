@@ -62,6 +62,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     }
 
     final text = _textController.text.trim();
+    if (text.isEmpty) {
+      return;
+    }
     _textController.clear();
 
     setState(() {
