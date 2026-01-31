@@ -86,6 +86,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       if (text.isNotEmpty) {
         final newMessage = ChatMessage(text: text, timestamp: DateTime.now());
 
+        if (!mounted) return;
         setState(() {
           _sendingMessages = [newMessage, ..._sendingMessages];
         });
@@ -95,6 +96,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         await _bubbleSlideController.forward();
         _bubbleSlideController.reset();
 
+        if (!mounted) return;
         setState(() {
           _sendingMessages.remove(newMessage);
           _deliveredMessages = [newMessage, ..._deliveredMessages];
@@ -128,9 +130,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 ),
                 SliverToBoxAdapter(
                   child: AnimatedBuilder(
-                    animation: Listenable.merge(
-                      [_bubbleSlideAnimation, _labelScaleAnimation],
-                    ),
+                    animation: Listenable.merge([
+                      _bubbleSlideAnimation,
+                      _labelScaleAnimation,
+                    ]),
                     child: Padding(
                       padding: .only(right: 16.0, top: bubbleSpacing),
                       child: const Text('Delivered'),
@@ -169,28 +172,26 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   ),
                 if (_deliveredMessages.isNotEmpty)
                   SliverToBoxAdapter(
-                  child: AnimatedBuilder(
-                    animation: Listenable.merge(
-                      [_bubbleSlideAnimation, _labelFadeAnimation],
-                    ),
-                    child: Padding(
-                      padding: .only(
-                        right: 16.0,
-                        top: bubbleSpacing,
+                    child: AnimatedBuilder(
+                      animation: Listenable.merge([
+                        _bubbleSlideAnimation,
+                        _labelFadeAnimation,
+                      ]),
+                      child: Padding(
+                        padding: .only(right: 16.0, top: bubbleSpacing),
+                        child: const Text('Delivered'),
                       ),
-                      child: const Text('Delivered'),
+                      builder: (context, child) {
+                        return Align(
+                          heightFactor: 1 - _bubbleSlideAnimation.value,
+                          alignment: Alignment.topRight,
+                          child: Opacity(
+                            opacity: 1 - _labelFadeAnimation.value,
+                            child: child,
+                          ),
+                        );
+                      },
                     ),
-                    builder: (context, child) {
-                      return Align(
-                        heightFactor: 1 - _bubbleSlideAnimation.value,
-                        alignment: Alignment.topRight,
-                        child: Opacity(
-                          opacity: 1 - _labelFadeAnimation.value,
-                          child: child,
-                        ),
-                      );
-                    },
-                  ),
                   ),
                 SliverPadding(
                   padding: .symmetric(horizontal: 8.0),
