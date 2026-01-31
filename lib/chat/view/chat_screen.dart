@@ -12,7 +12,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
-  var _sendingMessages = <ChatMessage>[];
+  var _animatingMessages = <ChatMessage>[];
   var _deliveredMessages = <ChatMessage>[];
 
   final _inputFieldKey = GlobalKey();
@@ -99,7 +99,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
         if (!mounted) return;
         setState(() {
-          _sendingMessages = [newMessage, ..._sendingMessages];
+          _animatingMessages = [newMessage, ..._animatingMessages];
         });
 
         await Future.delayed(const Duration(seconds: 2));
@@ -109,7 +109,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
         if (!mounted) return;
         setState(() {
-          _sendingMessages.remove(newMessage);
+          _animatingMessages.remove(newMessage);
           _deliveredMessages = [newMessage, ..._deliveredMessages];
         });
       }
@@ -162,15 +162,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     },
                   ),
                 ),
-                if (_sendingMessages.isNotEmpty)
+                if (_animatingMessages.isNotEmpty)
                   SliverPadding(
                     padding: .only(left: 8.0, right: 8.0, top: bubbleSpacing),
                     sliver: SliverList.separated(
                       separatorBuilder: (context, index) =>
                           const SizedBox(height: bubbleSpacing),
-                      itemCount: _sendingMessages.length,
+                      itemCount: _animatingMessages.length,
                       itemBuilder: (context, index) {
-                        final message = _sendingMessages[index];
+                        final message = _animatingMessages[index];
                         return Align(
                           alignment: Alignment.centerRight,
                           child: Bubble(
