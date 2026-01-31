@@ -56,6 +56,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _sendMessage() async {
+    if (_bubbleTransitionController.isAnimating ||
+        _bubbleSlideController.isAnimating) {
+      return;
+    }
+
     final text = _textController.text.trim();
     _textController.clear();
 
