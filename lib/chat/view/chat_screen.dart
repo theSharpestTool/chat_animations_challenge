@@ -94,25 +94,23 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       _bubbleTransitionController.reset();
       overlayEntry.remove();
 
-      if (text.isNotEmpty) {
-        final newMessage = ChatMessage(text: text, timestamp: DateTime.now());
+      final newMessage = ChatMessage(text: text, timestamp: DateTime.now());
 
-        if (!mounted) return;
-        setState(() {
-          _animatingMessages = [newMessage, ..._animatingMessages];
-        });
+      if (!mounted) return;
+      setState(() {
+        _animatingMessages = [newMessage, ..._animatingMessages];
+      });
 
-        await Future.delayed(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 2));
 
-        await _bubbleSlideController.forward();
-        _bubbleSlideController.reset();
+      await _bubbleSlideController.forward();
+      _bubbleSlideController.reset();
 
-        if (!mounted) return;
-        setState(() {
-          _animatingMessages.remove(newMessage);
-          _deliveredMessages = [newMessage, ..._deliveredMessages];
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _animatingMessages.remove(newMessage);
+        _deliveredMessages = [newMessage, ..._deliveredMessages];
+      });
     });
   }
 
