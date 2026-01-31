@@ -11,8 +11,8 @@ class BubbleTransition extends StatelessWidget {
   });
 
   final Animation<double> animation;
-  final Rect? startRect;
-  final Rect? endRect;
+  final Rect startRect;
+  final Rect endRect;
   final String text;
 
   @override

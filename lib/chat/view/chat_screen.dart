@@ -66,6 +66,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final startRect = _inputFieldKey.rect;
       final endRect = _bubblePlaceholderKey.rect;
+      if (startRect == null || endRect == null) {
+        return;
+      }
 
       final overlayEntry = OverlayEntry(
         builder: (context) {
