@@ -50,6 +50,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   @override
   void dispose() {
     _textController.dispose();
+    _bubbleTransitionController.dispose();
+    _bubbleSlideController.dispose();
     super.dispose();
   }
 
