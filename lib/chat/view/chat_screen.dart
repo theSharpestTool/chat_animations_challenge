@@ -38,11 +38,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     parent: _bubbleSlideController,
     curve: Curves.decelerate,
   );
-  late final _labelFadeAnimation = CurvedAnimation(
+  late final _deliveredLabelFadeAnimation = CurvedAnimation(
     parent: _bubbleSlideController,
     curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
   );
-  late final _labelScaleAnimation = CurvedAnimation(
+  late final _deliveredLabelScaleAnimation = CurvedAnimation(
     parent: _bubbleSlideController,
     curve: const Interval(0.4, 1.0, curve: Curves.easeOutSine),
   );
@@ -141,7 +141,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   child: AnimatedBuilder(
                     animation: Listenable.merge([
                       _bubbleSlideAnimation,
-                      _labelScaleAnimation,
+                      _deliveredLabelScaleAnimation,
                     ]),
                     child: Padding(
                       padding: .only(right: 16.0, top: bubbleSpacing),
@@ -152,7 +152,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         heightFactor: _bubbleSlideAnimation.value,
                         alignment: Alignment.topRight,
                         child: Transform.scale(
-                          scale: _labelScaleAnimation.value,
+                          scale: _deliveredLabelScaleAnimation.value,
                           alignment: Alignment.topCenter,
                           child: child,
                         ),
@@ -184,7 +184,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     child: AnimatedBuilder(
                       animation: Listenable.merge([
                         _bubbleSlideAnimation,
-                        _labelFadeAnimation,
+                        _deliveredLabelFadeAnimation,
                       ]),
                       child: Padding(
                         padding: .only(right: 16.0, top: bubbleSpacing),
@@ -195,7 +195,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           heightFactor: 1 - _bubbleSlideAnimation.value,
                           alignment: Alignment.topRight,
                           child: Opacity(
-                            opacity: 1 - _labelFadeAnimation.value,
+                            opacity: 1 - _deliveredLabelFadeAnimation.value,
                             child: child,
                           ),
                         );
