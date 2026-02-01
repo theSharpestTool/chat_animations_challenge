@@ -1,7 +1,13 @@
 import 'package:boxy/flex.dart';
 import 'package:flutter/material.dart';
 
+/// {@template bubble}
+/// Displays a chat bubble with message text and a formatted timestamp.
+///
+/// Allows styling overrides for color, padding, corner radius, and text styles.
+/// {@endtemplate}
 class Bubble extends StatelessWidget {
+  /// {@macro bubble}
   const Bubble({
     required this.text,
     required this.timestamp,
@@ -35,6 +41,8 @@ class Bubble extends StatelessWidget {
         color: color ?? colorScheme.primary,
         borderRadius: borderRadius ?? .circular(18),
       ),
+      // BoxyColumn lets the timestamp align to the end while keeping the text
+      // aligned to the start.
       child: BoxyColumn(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
