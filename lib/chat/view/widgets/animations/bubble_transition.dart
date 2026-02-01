@@ -1,7 +1,14 @@
 import 'package:advanced_chat_animations/chat/view/widgets/bubble.dart';
 import 'package:flutter/material.dart';
 
+/// {@template bubble_transition}
+/// Animates a [Bubble] from a start rect to an end rect with style tweaks.
+///
+/// Interpolates position, color, padding, radius, and text styles to match
+/// the visual morph between chat states.
+/// {@endtemplate}
 class BubbleTransition extends StatelessWidget {
+  /// {@macro bubble_transition}
   const BubbleTransition({
     super.key,
     required this.animation,
@@ -58,6 +65,9 @@ class BubbleTransition extends StatelessWidget {
 
         return Positioned.fromRect(
           rect: rect!,
+          // Use SingleChildScrollView with NeverScrollableScrollPhysics
+          // because bubble can shrink during rect animation and 
+          // we want to avoid overflow errors.
           child: SingleChildScrollView(
             physics: const NeverScrollableScrollPhysics(),
             child: Bubble(
