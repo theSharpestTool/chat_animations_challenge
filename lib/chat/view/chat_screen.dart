@@ -2,6 +2,7 @@ import 'package:advanced_chat_animations/chat/models/chat_message.dart';
 import 'package:advanced_chat_animations/chat/view/widgets/animations/bubble_placeholder.dart';
 import 'package:advanced_chat_animations/chat/view/widgets/animations/bubble_transition.dart';
 import 'package:advanced_chat_animations/chat/view/widgets/bubble.dart';
+import 'package:advanced_chat_animations/chat/view/widgets/delivered_label.dart';
 import 'package:flutter/material.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -143,10 +144,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       _bubbleSlideAnimation,
                       _deliveredLabelScaleAnimation,
                     ]),
-                    child: Padding(
-                      padding: .only(right: 16.0, top: bubbleSpacing),
-                      child: const Text('Delivered'),
-                    ),
+                    child: const DeliveredLabel(),
                     builder: (context, child) {
                       return Align(
                         heightFactor: _bubbleSlideAnimation.value,
@@ -186,10 +184,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         _bubbleSlideAnimation,
                         _deliveredLabelFadeAnimation,
                       ]),
-                      child: Padding(
-                        padding: .only(right: 16.0, top: bubbleSpacing),
-                        child: const Text('Delivered'),
-                      ),
+                      child: const DeliveredLabel(),
                       builder: (context, child) {
                         return Align(
                           heightFactor: 1 - _bubbleSlideAnimation.value,
