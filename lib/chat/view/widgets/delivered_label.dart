@@ -6,7 +6,7 @@ class DeliveredLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: .symmetric(vertical: 8, horizontal: 16),
+      padding: .only(top: 8, right: 16, left: 16),
       child: const Text('Delivered'),
     );
   }
