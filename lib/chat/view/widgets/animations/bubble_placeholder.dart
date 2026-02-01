@@ -1,7 +1,14 @@
 import 'package:advanced_chat_animations/chat/view/widgets/bubble.dart';
 import 'package:flutter/material.dart';
 
+/// {@template bubble_placeholder}
+/// Keeps a bubble-sized placeholder in layout while animating its height.
+///
+/// This reserves the space of a [Bubble] and collapses it via [animation]
+/// using [Align.heightFactor], preventing list jumps during transitions.
+/// {@endtemplate}
 class BubblePlaceholder extends StatelessWidget {
+  /// {@macro bubble_placeholder}
   const BubblePlaceholder({
     super.key,
     required this.animation,
