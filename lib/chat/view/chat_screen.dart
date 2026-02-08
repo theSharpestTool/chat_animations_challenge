@@ -71,6 +71,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    // Dispose all animations
+    _bubbleTransitionAnimation.dispose();
+    _bubbleSlideAnimation.dispose();
+    _deliveredLabelFadeAnimation.dispose();
+    _deliveredLabelScaleAnimation.dispose();
+
+    // Dispose all controllers
     _textController.dispose();
     _bubbleTransitionController.dispose();
     _bubbleSlideController.dispose();
