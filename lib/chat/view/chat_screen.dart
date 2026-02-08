@@ -1,8 +1,9 @@
 import 'package:advanced_chat_animations/chat/models/chat_message.dart';
 import 'package:advanced_chat_animations/chat/view/widgets/animations/bubble_placeholder.dart';
 import 'package:advanced_chat_animations/chat/view/widgets/animations/bubble_transition.dart';
+import 'package:advanced_chat_animations/chat/view/widgets/animations/delivered_label_fade.dart';
+import 'package:advanced_chat_animations/chat/view/widgets/animations/delivered_label_scale.dart';
 import 'package:advanced_chat_animations/chat/view/widgets/bubble.dart';
-import 'package:advanced_chat_animations/chat/view/widgets/delivered_label.dart';
 import 'package:flutter/material.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -139,23 +140,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   ),
                 ),
                 SliverToBoxAdapter(
-                  child: AnimatedBuilder(
-                    animation: Listenable.merge([
-                      _bubbleSlideAnimation,
-                      _deliveredLabelScaleAnimation,
-                    ]),
-                    child: const DeliveredLabel(),
-                    builder: (context, child) {
-                      return Align(
-                        heightFactor: _bubbleSlideAnimation.value,
-                        alignment: Alignment.topRight,
-                        child: Transform.scale(
-                          scale: _deliveredLabelScaleAnimation.value,
-                          alignment: Alignment.topCenter,
-                          child: child,
-                        ),
-                      );
-                    },
+                  child: DeliveredLabelScale(
+                    scaleAnimation: _deliveredLabelScaleAnimation,
+                    slideAnimation: _bubbleSlideAnimation,
                   ),
                 ),
                 if (_animatingMessages.isNotEmpty)
@@ -179,22 +166,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   ),
                 if (_deliveredMessages.isNotEmpty)
                   SliverToBoxAdapter(
-                    child: AnimatedBuilder(
-                      animation: Listenable.merge([
-                        _bubbleSlideAnimation,
-                        _deliveredLabelFadeAnimation,
-                      ]),
-                      child: const DeliveredLabel(),
-                      builder: (context, child) {
-                        return Align(
-                          heightFactor: 1 - _bubbleSlideAnimation.value,
-                          alignment: Alignment.topRight,
-                          child: Opacity(
-                            opacity: 1 - _deliveredLabelFadeAnimation.value,
-                            child: child,
-                          ),
-                        );
-                      },
+                    child: DeliveredLabelFade(
+                      fadeAnimation: _deliveredLabelFadeAnimation,
+                      slideAnimation: _bubbleSlideAnimation,
                     ),
                   ),
                 SliverPadding(
