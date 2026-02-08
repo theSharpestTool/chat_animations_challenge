@@ -7,9 +7,9 @@ transitions, placeholder layout animation, and coordinated label animations to
 create a smooth chat experience.
 
 ## GIF Example
-![Screen Recording 2026-02-08 at 13 23 59](https://github.com/user-attachments/assets/45eb65a6-f178-41b3-baf0-36ba99322487)
-
-
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/45eb65a6-f178-41b3-baf0-36ba99322487" alt="Chat animation demo" width="320" />
+</p>
 
 ## Demo Focus
 
