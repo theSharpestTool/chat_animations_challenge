@@ -14,14 +14,21 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
+  /// List of messages that are currently animating (sending). Displayed below the delivered label.
   var _animatingMessages = <ChatMessage>[];
+
+  /// List of messages that have been delivered. Displayed above the delivered label.
   var _deliveredMessages = <ChatMessage>[];
 
+  /// Key of input field to get its position as a starting point for bubble transition animation.
   final _inputFieldKey = GlobalKey();
+
+  /// Key of bubble placeholder to get its position as an ending point for bubble transition animation.
   final _bubblePlaceholderKey = GlobalKey();
 
   final _textController = TextEditingController();
 
+  /// Drives the overlay bubble flight from input to placeholder.
   late final _bubbleTransitionController = AnimationController(
     duration: const Duration(milliseconds: 300),
     vsync: this,
@@ -30,8 +37,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     parent: _bubbleTransitionController,
     curve: Curves.decelerate,
   );
+
+  /// Text snapshot used by the overlay bubble during the transition.
   String _bubbleTransitionText = '';
 
+  /// Drives the list shift and delivered label reveal once sent.
   late final _bubbleSlideController = AnimationController(
     duration: const Duration(milliseconds: 500),
     vsync: this,
@@ -40,10 +50,20 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     parent: _bubbleSlideController,
     curve: Curves.decelerate,
   );
+
+  /// Fades the delivered label in during the first half of the slide.
+  /// Has inteval from 0 to 0.6:
+  /// - starts fading out when the slide animation starts
+  /// - completes fade out when the slide animation is at 60%
   late final _deliveredLabelFadeAnimation = CurvedAnimation(
     parent: _bubbleSlideController,
     curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
   );
+
+  /// Scales the delivered label up toward the end of the slide.
+  /// Has inteval from 0.4 to 1:
+  /// - starts scaling up when the slide animation is at 40%
+  /// - completes scaling up along with the slide animation at 100%
   late final _deliveredLabelScaleAnimation = CurvedAnimation(
     parent: _bubbleSlideController,
     curve: const Interval(0.4, 1.0, curve: Curves.easeOutSine),
@@ -58,6 +78,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _sendMessage() async {
+    // Prevent sending a new message while an animation is in progress.
     if (_bubbleTransitionController.isAnimating ||
         _bubbleSlideController.isAnimating) {
       return;
@@ -73,6 +94,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       _bubbleTransitionText = text;
     });
 
+    // Use post frame callback to ensure input field (start position) and
+    // bubble placeholder (end position) have been rendered before starting the animation.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final startRect = _inputFieldKey.rect;
       final endRect = _bubblePlaceholderKey.rect;
@@ -80,6 +103,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         return;
       }
 
+      // Insert the overlay entry with the flying bubble.
       final overlayEntry = OverlayEntry(
         builder: (context) {
           return BubbleTransition(
@@ -92,22 +116,27 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       );
       Overlay.of(context).insert(overlayEntry);
 
+      // Start the bubble transition animation and wait for it to complete.
+      // Once completed, remove the overlay entry.
       await _bubbleTransitionController.forward();
       _bubbleTransitionController.reset();
       overlayEntry.remove();
 
+      // Add the new message to the animating list.
       final newMessage = ChatMessage(text: text, timestamp: DateTime.now());
-
       if (!mounted) return;
       setState(() {
         _animatingMessages = [newMessage, ..._animatingMessages];
       });
 
+      // Simulate a network delay for sending the message before starting the slide animation.
       await Future.delayed(const Duration(seconds: 2));
 
+      // Once delivered, start the slide animation to move the bubble up and reveal the delivered label.
       await _bubbleSlideController.forward();
       _bubbleSlideController.reset();
 
+      // When animation completes, move the message from animating to delivered list.
       if (!mounted) return;
       setState(() {
         _animatingMessages.remove(newMessage);
@@ -126,9 +155,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         children: [
           Expanded(
             child: CustomScrollView(
-              reverse: true,
+              reverse: true, // Start from the bottom, like typical chat apps
               slivers: [
                 SliverToBoxAdapter(child: const SizedBox(height: 16)),
+
+                // The bubble placeholder animates its height from 0 to full bubble size during the bubble transition.
+                // This reserves the space for the incoming bubble and lifts all existing content up smoothly. 
+                // _bubblePlaceholderKey is used to get the end position of the flying bubble.
                 SliverPadding(
                   padding: .symmetric(horizontal: 8.0),
                   sliver: SliverToBoxAdapter(
@@ -139,12 +172,18 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
+
+                // First "Delivered" label (works in tandem with DeliveredLabelFade):
+                // scales up from 0 to full size making _animatingMessages appear to slide up with it.
                 SliverToBoxAdapter(
                   child: DeliveredLabelScale(
                     scaleAnimation: _deliveredLabelScaleAnimation,
                     slideAnimation: _bubbleSlideAnimation,
                   ),
                 ),
+
+                // List of messages that are currently animating (sending). 
+                // These are the messages that have been sent but not yet delivered.
                 if (_animatingMessages.isNotEmpty)
                   SliverPadding(
                     padding: .only(left: 8.0, right: 8.0, top: bubbleSpacing),
@@ -164,6 +203,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       },
                     ),
                   ),
+
+                // Second "Delivered" label (works in tandem with DeliveredLabelScale):
+                // fades out from full size and opacity to 0, making _deliveredMessages appear to slide up and take its place.
                 if (_deliveredMessages.isNotEmpty)
                   SliverToBoxAdapter(
                     child: DeliveredLabelFade(
@@ -171,6 +213,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       slideAnimation: _bubbleSlideAnimation,
                     ),
                   ),
+
+                // List of messages that have completed the sending animation and are now delivered.
                 SliverPadding(
                   padding: .symmetric(horizontal: 8.0),
                   sliver: SliverList.separated(
@@ -192,6 +236,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               ],
             ),
           ),
+
+          // Input field and send button.
           Container(
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor,
@@ -209,8 +255,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 child: Row(
                   children: [
                     Expanded(
+                      // _inputFieldKey is used to get the start position of the flying bubble.
                       child: TextField(
-                        key: _inputFieldKey,
+                        key: _inputFieldKey, 
                         controller: _textController,
                         maxLines: null,
                         decoration: const InputDecoration(
@@ -242,6 +289,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 }
 
 extension on GlobalKey {
+  /// Returns the global [Rect] of the widget associated with this key, or null if it cannot be determined.
   Rect? get rect {
     final renderObject = currentContext?.findRenderObject();
     if (renderObject is! RenderBox) {
