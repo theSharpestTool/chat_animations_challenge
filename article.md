@@ -185,19 +185,19 @@ We can analyze an example and highlight the sequence of effects:
    - Border radius animation
    - Text style animation
 
-[animation example screen record with highlighted effects]
+![animation example screen record with highlighted effects 1](https://github.com/user-attachments/assets/2bd244e8-a8b3-4fe6-bc1b-6ed605594cf6)
 
 2. Lift up animation. During the bubble transition, delivered messages are lifted up, that makes the space for the new message
    - Size (placeholder height) animation
 
-[animation example screen record with highlighted effects]
+![animation example screen record with highlighted effects 2](https://github.com/user-attachments/assets/a0cc6f7e-a871-45ed-b3c0-32cd07d6f3e0)
 
 3. Slide up animation. After the bubble transition, the message is sliding up over the “delivered” label
    - Position animation
    - Fade animation
    - Scale animation
 
-[animation example screen record with highlighted effects]
+![animation example screen record with highlighted effects 3](https://github.com/user-attachments/assets/8c15e1fb-3ef6-4411-8012-89b7971a0d67)
 
 Of course, at the beginning of the development it's hard to notice all the points above (especially point 2). In my case, they were revealed during the implementation, and I had to adjust the implementation several times to achieve the desired result. But the main point is that we can decompose the complex animation into smaller parts and implement them separately, and then combine them together to achieve the final result.
 
@@ -311,7 +311,7 @@ As we can see, `SizeTransition` is based on `Align` widget, where the `heightFac
 
 The challenge is that the size of the new message bubble is dynamic, because it depends on the text length. It's not possible to just specify a fixed height for the placeholder. We can resolve it in a simple way, the placeholder can actually be the new message bubble itself:
 
-[animation example screen record with revealed placeholder]
+![animation example screen record with revealed placeholder 4](https://github.com/user-attachments/assets/b3592bb9-33b8-4f6d-9dc2-c0a115491c5e)
 
 Next, we can just make it invisible with [Visibility.maintain](https://api.flutter.dev/flutter/widgets/Visibility/Visibility.maintain.html) widget, so it will look like an empty space, but it will have the same size as the new message bubble:
 
@@ -452,7 +452,7 @@ The next steps are:
 
 So the final result looks like this:
 
-[animation example screen record with revealed placeholder and lifted up bubbles]
+![animation example screen record with revealed placeholder and lifted up bubbles 5](https://github.com/user-attachments/assets/67a3da8f-3a6e-41cc-b6db-8c8946309881)
 
 ## Transition animation
 
@@ -561,7 +561,7 @@ The second one goes to `BubblePlaceholder`. But there's an important detail — 
 The reason is that we need the `Rect` of the final bubble shape: its actual visual size and screen position. `AnimatedBuilder` and `Align` size is zero at the start of the animation. Their top right corner that
 is used as the anchor point is also changing its position during the animation, so it is not correct at the beginning of the animation and cannot be used as a stable reference point for the transition.
 
-[image showing the position of the key attached to different widgets]
+![image showing the position of the key attached to different widgets 6](https://github.com/user-attachments/assets/d6c57caa-d794-48cb-acb2-f74b70a5bf82)
 
 ```dart
 class BubblePlaceholder extends StatelessWidget {
@@ -733,7 +733,7 @@ Future<void> _sendMessage() async {
 }
 ```
 
-[animation example screen record with transition animation]
+![animation example screen record with transition animation 7](https://github.com/user-attachments/assets/302daf47-ae8e-4bf0-8d3e-9515e6476292)
 
 We use `addPostFrameCallback` because we first call `setState` to add the `BubblePlaceholder` to the tree, but we need to wait until the frame is rendered to get the correct `Rect` for the placeholder. The text field's `Rect` is already stable at this point, so we can read both `Rect`s safely.
 
@@ -902,13 +902,13 @@ A few things worth noting:
 
 Each `Tween` is evaluated with the same `animation` value, so all properties animate in lockstep — the bubble smoothly transforms from text field to chat bubble as it flies across the screen.
 
-[animation example screen record with all properties animating together]
+![animation example screen record with all properties animating together 8](https://github.com/user-attachments/assets/6d75af15-dfed-4d17-b7ea-c2e2d3c399b1)
 
 ## Slide up animation
 
 We are almost done! Let's take a look at the last part of the animation — the message sliding up over the “delivered” label.
 
-[animation example screen record with slide up animation]
+![animation example screen record with slide up animation 9](https://github.com/user-attachments/assets/9d33f452-cc12-473b-91bf-1c8b852b535b)
 
 At the first glance, it may seem that the animation consists of:
 
@@ -922,8 +922,8 @@ I would like to suggest another approach. Actually, we can have 2 "delivered" la
 - Top "delivered" label with fade out effect that reduces its size to zero and makes it invisible
 - Bottom "delivered" label with scale up effect that increases its size from zero to the normal size and makes it visible
 
-[animation example screen record with fading out label]
-[animation example screen record with scaling up label]
+![animation example screen record with fading out label 10](https://github.com/user-attachments/assets/87e84121-b895-49e1-9fb8-945cff468314)
+![animation example screen record with scaling up label 11](https://github.com/user-attachments/assets/d409e1ab-dbf4-438f-9ae8-20c9d1f7b2c6)
 
 If combined together, it will look like the bubble is sliding up over the "delivered" label. The main advantage of this approach is that we don't need to calculate the positions, we just need to animate the opacity, scale and size of the labels and we will achieve the desired result.
 
@@ -1077,15 +1077,7 @@ The reason is that the two "Delivered" labels act as a visual separator between 
 
 By keeping two separate lists, the sliver layout becomes a direct reflection of the animation state. Since `CustomScrollView` uses `reverse: true`, the sliver declaration order in code is the opposite of what the user sees on screen. From the user's perspective, top to bottom:
 
-```
-_deliveredMessages         <- confirmed messages
-DeliveredLabelFade         <- fades and collapses away
-_animatingMessages         <- sent but not yet confirmed
-DeliveredLabelScale        <- grows up, pushing _animatingMessages with it
-BubblePlaceholder          <- space reserved for the incoming bubble
-```
-
-[image demonstrating the list above]
+<img width="506" height="918" alt="image demonstrating the list above 12" src="https://github.com/user-attachments/assets/d878c106-5a8b-43ea-92f6-0809f32cfe72" />
 
 ### Updates to \_sendMessage
 
