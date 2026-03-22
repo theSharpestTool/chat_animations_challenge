@@ -365,7 +365,7 @@ class BubblePlaceholder extends StatelessWidget {
 
 The next steps are:
 
-1. Add `String _bubbleTransitionText = '';` to the `ChatScreen` widget to pass the text from the text field to the placeholder. Also it's needed to initialize and dispose the animation controller and the animation itself in the `ChatScreen` widget:
+1. Add `String _bubbleTransitionText = '';` to the `ChatScreen` widget to pass the text from the text field to the placeholder. Also it's needed to initialize and dispose the animation controller and the animation itself in the `ChatScreen` widget.
 
 ```dart
   String _bubbleTransitionText = '';
@@ -386,6 +386,12 @@ The next steps are:
     _bubbleTransitionController.dispose();
     super.dispose();
   }
+```
+
+Since `AnimationController` requires a `TickerProvider` via the `vsync` parameter, we need to add the `TickerProviderStateMixin` mixin to the state class:
+
+```dart
+class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 ```
 
 2. Handle the animation inside the `_sendMessage` method:
