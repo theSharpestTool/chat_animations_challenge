@@ -1,3 +1,5 @@
+# Building a WhatsApp-Style Message Send Animation in Flutter from Scratch
+
 I would like to show a real case that happened to me on a project. There is a chat screen. The task is to implement an animation for sending the bubble. In the apps like WhatsApp and iMessages there is a particular animation when sending a message. All animation examples in this article will be slowed down for better demonstration:
 
 <p align="center">
