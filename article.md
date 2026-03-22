@@ -1,12 +1,12 @@
 # Building a WhatsApp-Style Message Send Animation in Flutter from Scratch
 
-I would like to show a real case that happened to me on a project. There is a chat screen. The task is to implement an animation for sending the bubble. In the apps like WhatsApp and iMessages there is a particular animation when sending a message. All animation examples in this article will be slowed down for better demonstration:
+I would like to share a real case from a project I worked on. There is a chat screen. The task is to implement an animation for sending the bubble. In apps like WhatsApp and iMessage there is a particular animation when sending a message. All animation examples in this article will be slowed down for better demonstration:
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/45eb65a6-f178-41b3-baf0-36ba99322487" alt="Chat animation demo" width="320" />
 </p>
 
-As you can see it’s a complex animation, the message bubble flies from the text field transforming its shape and content, then slides up over the “delivered” label. Initially I assumed that it’s a common pattern, so it should be some published package or a guide that would show how to implement such animations. However I was very surprised that there is nothing that can help, so I had implemented everything from scratch and in this article I’ll describe step by step how to implement such complex animations with Flutter
+As you can see it’s a complex animation, the message bubble flies from the text field transforming its shape and content, then slides up over the “delivered” label. Initially I assumed that it’s a common pattern, so there should be some published package or a guide that would show how to implement such animations. However, I was very surprised that there is nothing that can help, so I implemented everything from scratch and in this article I’ll describe step by step how to implement such complex animations with Flutter.
 
 ## Initial setup
 
@@ -211,7 +211,7 @@ Of course, at the beginning of the development it's hard to notice all the point
 
 ## Defining the widgets to use for the animation
 
-Official Flutter animations [guide](https://flutter.dev/docs/development/ui/animations) has the desicions tree to choose the right animation widget.
+Official Flutter animations [guide](https://docs.flutter.dev/ui/animations) has the decision tree to choose the right animation widget.
 Let's check this out for our case:
 
 <p align="center">
@@ -220,17 +220,17 @@ Let's check this out for our case:
 
 > I want a Flutter animation! Is my animation more like a drawing? Does my animation involve layout movement far beyond standard primitives like rows and columns?
 
-No. It's not involve layout movement far beyond standard primitives, it can be described as a combination of position, size, color, padding, border radius and text style animations. Every effect can be implemented with standard Flutter animation widgets.
+No. It doesn't involve layout movement far beyond standard primitives, it can be described as a combination of position, size, color, padding, border radius and text style animations. Every effect can be implemented with standard Flutter animation widgets.
 
 > Am I animating text?
 
-No. (Actually yes, but I don't think `AnimatedDefaultTextStyle` is applicable for our case, because we need to animate text style together with other properties, and it can be achieved with other widgets that i'll describe later).
+No. (Actually yes, but I don't think `AnimatedDefaultTextStyle` is applicable for our case, because we need to animate text style together with other properties, and it can be achieved with other widgets that I'll describe later).
 
 > Is it okay if my animation goes "always forwards"? Meaning, are there no discontinuities in my animation values? Is it okay if I can't make it repeat forever easily? Am I animating a single child?
 
 No. We have a complex animation, it's not a single child animation, and it has discontinuities in animation values (for example, during the bubble transition, the message is flying from the text field to the position of the message in the chat, and then it slides up over the “delivered” label).
 
-> Is there a built-in FooTransition widget for I want?
+> Is there a built-in FooTransition widget for what I want?
 
 No. There are some built-in transition widgets that can be used for some of the effects (for example, `SlideTransition` can be used for position animation, `SizeTransition` can be used for size animation etc.), but there is no single built-in widget that can handle all the effects together.
 
@@ -266,7 +266,7 @@ The goal is to lift up the bubbles list when the new message is sent. It can be 
 
 Each animation consists of 4 main parts:
 
-- Start point (inital size, position, color, etc.)
+- Start point (initial size, position, color, etc.)
 - End point (final size, position, color, etc.)
 - Animation [curve](https://api.flutter.dev/flutter/animation/Curves-class.html) (how the animation values will change over time)
 - Animation duration
@@ -284,7 +284,7 @@ At this stage there are 2 main questions:
 
 ### What widgets can be used for this animation?
 
-We need to animate the height of the placeholder, which is actually the size of it. If look for the widget that can animate the size, we can find [SizeTransition](https://api.flutter.dev/flutter/widgets/SizeTransition-class.html) widget. However I promised to use only the `AnimatedBuilder` so let's check the source code of `SizeTransition`:
+We need to animate the height of the placeholder, which is actually the size of it. If we look for the widget that can animate the size, we can find [SizeTransition](https://api.flutter.dev/flutter/widgets/SizeTransition-class.html) widget. However, I promised to use only the `AnimatedBuilder` so let's check the source code of `SizeTransition`:
 
 ```dart
 class SizeTransition extends AnimatedWidget {
@@ -327,7 +327,7 @@ Next, we can just make it invisible with [Visibility.maintain](https://api.flutt
 
 ### Implementation
 
-Finally, we can implement the placeholder widget using `AnimatedBuilder` `Align` and `Visibility.maintain` widgets:
+Finally, we can implement the placeholder widget using `AnimatedBuilder`, `Align`, and `Visibility.maintain` widgets:
 
 ```dart
 class BubblePlaceholder extends StatelessWidget {
@@ -485,7 +485,7 @@ The goal is to animate the bubble flying from the text field to the position of 
 - Animation curve: `Curves.decelerate`
 - Animation duration: 300 milliseconds
 
-The biggest chalenge here is position and size animations, because it's dyncamic and depends on other widgets.
+The biggest challenge here is position and size animations, because it's dynamic and depends on other widgets.
 
 ### Get the position and size of the text field
 
@@ -681,7 +681,7 @@ class BubbleTransition extends StatelessWidget {
 }
 ```
 
-`Positioned.fromRect` places the `Bubble` at the exact position and size described by the current interpolated `Rect`. Since the `Rect` is interpolated from a larger text field size down toward the bubble size, the `Bubble` may shrink during the animation and overflow its constrained bounds.`SingleChildScrollView` gives the child unbounded height to render into, preventing overflow errors. `NeverScrollableScrollPhysics` disables any actual scrolling, so it's purely a layout trick.
+`Positioned.fromRect` places the `Bubble` at the exact position and size described by the current interpolated `Rect`. Since the `Rect` is interpolated from a larger text field size down toward the bubble size, the `Bubble` may shrink during the animation and overflow its constrained bounds. `SingleChildScrollView` gives the child unbounded height to render into, preventing overflow errors. `NeverScrollableScrollPhysics` disables any actual scrolling, so it's purely a layout trick.
 
 ### Overlay
 
@@ -691,7 +691,7 @@ The flying bubble needs to move freely across the entire screen — over the cha
 
 ### Putting it all together in \_sendMessage
 
-All we have to to is just:
+All we have to do is just:
 
 1. Insert the `BubbleTransition` into the `Overlay` with the correct start and end `Rect`s
 2. Start the animation
@@ -825,7 +825,7 @@ class Bubble extends StatelessWidget {
 }
 ```
 
-The timestamp needs to be aligned to the trailing edge of the bubble, while the message text stays aligned to the leading edge. Standard `Column` with `CrossAxisAlignment` applies the same alignment to all children. [`BoxyColumn`](https://pub.dev/packages/boxy) from the `boxy` package solves this — it lets each child override the cross-axis alignment individually via `BoxyFlexible.align`, so the message text and the timestamp can have different alignments within the same column.
+The timestamp needs to be aligned to the trailing edge of the bubble, while the message text stays aligned to the leading edge. Standard `Column` with `CrossAxisAlignment` applies the same alignment to all children. [`BoxyColumn`](https://pub.dev/packages/boxy) from the [`boxy`](https://pub.dev/packages/boxy) package solves this — it lets each child override the cross-axis alignment individually via `BoxyFlexible.align`, so the message text and the timestamp can have different alignments within the same column. You'll need to add `boxy` to your `pubspec.yaml` dependencies to use it.
 
 ### Finishing BubbleTransition
 
@@ -1148,7 +1148,7 @@ Future<void> _sendMessage() async {
 }
 ```
 
-After the bubble transition completes, the message is added to `_animatingMessages`. It sits below `DeliveredLabelFade` which is still fully visible at this point, so the user sees the new message appear below the "Delivered" label. After a simulated network delay, we run the slide animation for `DeliveredLabelFade` and`DeliveredLabelScale`, creating the effect of the message sliding up over the "Delivered" label. Finally, we move the message from `_animatingMessages` to `_deliveredMessages`, which visually places it above the "Delivered" label in the list.
+After the bubble transition completes, the message is added to `_animatingMessages`. It sits below `DeliveredLabelFade` which is still fully visible at this point, so the user sees the new message appear below the "Delivered" label. After a simulated network delay, we run the slide animation for `DeliveredLabelFade` and `DeliveredLabelScale`, creating the effect of the message sliding up over the "Delivered" label. Finally, we move the message from `_animatingMessages` to `_deliveredMessages`, which visually places it above the "Delivered" label in the list.
 
 ### DeliveredLabelScale and DeliveredLabelFade in the widget tree
 
@@ -1205,3 +1205,4 @@ As you can see, Flutter has powerful tools for building complex, custom animatio
 By breaking the animation down into smaller pieces and combining these tools, we achieved a polished, engaging result with code that remains readable and maintainable. 
 
 I hope this walkthrough inspires you to experiment with your own custom animations in Flutter!
+
