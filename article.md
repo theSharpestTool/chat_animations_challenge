@@ -3,7 +3,7 @@
 I would like to share a real case from a project I worked on. There is a chat screen. The task is to implement an animation for sending the bubble. In apps like WhatsApp and iMessage there is a particular animation when sending a message. All animation examples in this article will be slowed down for better demonstration:
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/45eb65a6-f178-41b3-baf0-36ba99322487" alt="Chat animation demo" width="320" />
+  <img src="https://github.com/user-attachments/assets/e995e1b1-4046-46b7-9bd5-5550aa59844e" alt="Chat animation demo"/>
 </p>
 
 As you can see it’s a complex animation, the message bubble flies from the text field transforming its shape and content, then slides up over the “delivered” label. Initially I assumed that it’s a common pattern, so there should be some published package or a guide that would show how to implement such animations. However, I was very surprised that there is nothing that can help, so I implemented everything from scratch and in this article I’ll describe step by step how to implement such complex animations with Flutter.
@@ -188,14 +188,14 @@ We can analyze an example and highlight the sequence of effects:
    - Text style animation
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/2bd244e8-a8b3-4fe6-bc1b-6ed605594cf6" alt="animation example screen record with highlighted effects 1" width="320" />
+  <img src="https://github.com/user-attachments/assets/8664a6e7-f5f1-41ae-ad74-f99e0da3bed5" alt="animation example screen record with highlighted effects 1" />
 </p>
 
 2. Lift up animation. During the bubble transition, delivered messages are lifted up, that makes the space for the new message
    - Size (placeholder height) animation
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/a0cc6f7e-a871-45ed-b3c0-32cd07d6f3e0" alt="animation example screen record with highlighted effects 2" width="320" />
+  <img src="https://github.com/user-attachments/assets/10bb93c6-c4ee-471a-aa17-c66e63b6cf12" alt="animation example screen record with highlighted effects 2" />
 </p>
 
 3. Slide up animation. After the bubble transition, the message is sliding up over the “delivered” label
@@ -204,7 +204,7 @@ We can analyze an example and highlight the sequence of effects:
    - Scale animation
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/8c15e1fb-3ef6-4411-8012-89b7971a0d67" alt="animation example screen record with highlighted effects 3" width="320" />
+  <img src="https://github.com/user-attachments/assets/89ec4d67-e1a2-48b8-95ca-6756880c69a7" alt="animation example screen record with highlighted effects 3" />
 </p>
 
 Of course, at the beginning of the development it's hard to notice all the points above (especially point 2). In my case, they were revealed during the implementation, and I had to adjust the implementation several times to achieve the desired result. But the main point is that we can decompose the complex animation into smaller parts and implement them separately, and then combine them together to achieve the final result.
@@ -320,7 +320,7 @@ As we can see, `SizeTransition` is based on `Align` widget, where the `heightFac
 The challenge is that the size of the new message bubble is dynamic, because it depends on the text length. It's not possible to just specify a fixed height for the placeholder. We can resolve it in a simple way, the placeholder can actually be the new message bubble itself:
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/b3592bb9-33b8-4f6d-9dc2-c0a115491c5e" alt="animation example screen record with revealed placeholder 4" width="320" />
+  <img src="https://github.com/user-attachments/assets/17057fa6-148b-428a-8741-5428f439dded" alt="animation example screen record with revealed placeholder 4" />
 </p>
 
 Next, we can just make it invisible with [Visibility.maintain](https://api.flutter.dev/flutter/widgets/Visibility/Visibility.maintain.html) widget, so it will look like an empty space, but it will have the same size as the new message bubble:
@@ -469,7 +469,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 So the final result looks like this:
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/67a3da8f-3a6e-41cc-b6db-8c8946309881" alt="animation example screen record with revealed placeholder and lifted up bubbles 5" width="320" />
+  <img src="https://github.com/user-attachments/assets/1d8f26e2-55bc-4b63-99eb-f603777754f8" alt="animation example screen record with revealed placeholder and lifted up bubbles 5" />
 </p>
 
 ## Transition animation
@@ -580,7 +580,7 @@ The reason is that we need the `Rect` of the final bubble shape: its actual visu
 is used as the anchor point is also changing its position during the animation, so it is not correct at the beginning of the animation and cannot be used as a stable reference point for the transition.
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/d6c57caa-d794-48cb-acb2-f74b70a5bf82" alt="image showing the position of the key attached to different widgets 6" width="320" />
+  <img src="https://github.com/user-attachments/assets/7a746546-9b4d-423c-a27a-e99730cf8eff" alt="image showing the position of the key attached to different widgets 6" />
 </p>
 
 ```dart
@@ -754,7 +754,7 @@ Future<void> _sendMessage() async {
 ```
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/302daf47-ae8e-4bf0-8d3e-9515e6476292" alt="animation example screen record with transition animation 7" width="320" />
+  <img src="https://github.com/user-attachments/assets/3952a12a-789f-468f-8ab8-cb4ff54f8604" alt="animation example screen record with transition animation 7" />
 </p>
 
 We use `addPostFrameCallback` because we first call `setState` to add the `BubblePlaceholder` to the tree, but we need to wait until the frame is rendered to get the correct `Rect` for the placeholder. The text field's `Rect` is already stable at this point, so we can read both `Rect`s safely.
@@ -925,7 +925,7 @@ A few things worth noting:
 Each `Tween` is evaluated with the same `animation` value, so all properties animate in lockstep — the bubble smoothly transforms from text field to chat bubble as it flies across the screen.
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/6d75af15-dfed-4d17-b7ea-c2e2d3c399b1" alt="animation example screen record with all properties animating together 8" width="320" />
+  <img src="https://github.com/user-attachments/assets/a52f8e13-85d2-4aee-85a4-00b04fb39089" alt="animation example screen record with all properties animating together 8" />
 </p>
 
 ## Slide up animation
@@ -933,7 +933,7 @@ Each `Tween` is evaluated with the same `animation` value, so all properties ani
 We are almost done! Let's take a look at the last part of the animation — the message sliding up over the “delivered” label.
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/9d33f452-cc12-473b-91bf-1c8b852b535b" alt="animation example screen record with slide up animation 9" width="320" />
+  <img src="https://github.com/user-attachments/assets/e86eda5a-38f7-4c81-8676-341de67d78d5" alt="animation example screen record with slide up animation 9" />
 </p>
 
 At the first glance, it may seem that the animation consists of:
@@ -949,10 +949,10 @@ I would like to suggest another approach. Actually, we can have 2 "delivered" la
 - Bottom "delivered" label with scale up effect that increases its size from zero to the normal size and makes it visible
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/87e84121-b895-49e1-9fb8-945cff468314" alt="animation example screen record with fading out label 10" width="320" />
+  <img src="https://github.com/user-attachments/assets/87e84121-b895-49e1-9fb8-945cff468314" alt="animation example screen record with fading out label 10" />
 </p>
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/d409e1ab-dbf4-438f-9ae8-20c9d1f7b2c6" alt="animation example screen record with scaling up label 11" width="320" />
+  <img src="https://github.com/user-attachments/assets/d409e1ab-dbf4-438f-9ae8-20c9d1f7b2c6" alt="animation example screen record with scaling up label 11" />
 </p>
 
 If combined together, it will look like the bubble is sliding up over the "delivered" label. The main advantage of this approach is that we don't need to calculate the positions, we just need to animate the opacity, scale and size of the labels and we will achieve the desired result.
@@ -1108,7 +1108,7 @@ The reason is that the two "Delivered" labels act as a visual separator between 
 By keeping two separate lists, the sliver layout becomes a direct reflection of the animation state. Since `CustomScrollView` uses `reverse: true`, the sliver declaration order in code is the opposite of what the user sees on screen. From the user's perspective, top to bottom:
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/d878c106-5a8b-43ea-92f6-0809f32cfe72" alt="image demonstrating the list above 12" width="320" />
+  <img src="https://github.com/user-attachments/assets/0252a861-f20b-467a-906d-c0c29b4a30e6" alt="image demonstrating the list above 12" />
 </p>
 
 ### Updates to \_sendMessage
